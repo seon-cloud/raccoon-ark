@@ -1,0 +1,29 @@
+{
+  "name": "raccoon-ark",
+  "version": "0.0.1",
+  "description": "Plugins libraries based on raccoon-sanctuary",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seon-cloud/raccoon-ark.git"
+  },
+  "keywords": [
+    "plugins",
+    "library",
+    "raccoon"
+  ],
+  "author": "small-entropy",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/seon-cloud/raccoon-ark/issues"
+  },
+  "homepage": "https://github.com/seon-cloud/raccoon-ark#readme",
+  "dependencies": {
+    "amqplib": "^0.6.0",
+    "pug": "^3.0.0",
+    "raccoon-sanctuary": "^0.0.3"
+  }
+}
