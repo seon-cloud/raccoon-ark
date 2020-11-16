@@ -161,6 +161,6 @@ export default class Rabbit extends Plugin {
 
         this.#connectionString = options?.connectionString
             ?  options.connectionString
-            : 'amqp://guest:guest@localhose:5672/';
+            : 'amqp://guest:guest@localhost:5672/';
     }
 }
