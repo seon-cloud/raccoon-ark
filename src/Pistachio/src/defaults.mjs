@@ -179,7 +179,7 @@ export const DEFAULT_ERRORS = {
 
 /** Задаём стандартные маршруты для запросов */
 export const DEFAULT_ROUTES = {
-    '/health': 'allHealth',
-    '/map': 'allMap',
-    '/info': 'allInfo' 
+    '/~health': 'allHealth',
+    '/~map': 'allMap',
+    '/~info': 'allInfo' 
 };
