@@ -53,11 +53,29 @@ const renderFile = function(filepath, data) {
     }
 };
 
+/**
+ * @function
+ * @name render
+ * @description Функця, которая возвращает рендер по имени шаблона 
+ * @param {string} templateName имя шаблона
+ * @param {object} data данные для отображения
+ * @returns {string} результат примененя функции рендера файла
+ * @public
+ */
+const render = function(templateName, data = {}) {
+    try {
+        const templateFn = this.compiled[templateName];
+        return templateFn(data);
+    } catch (error) {
+        throw error;
+    }
+};
+
 /** Объект с API файла по умолчанию.
  * compileFile - функция для компиляции шаблона
  * compiledFunction - функция для выполнения шаблона (рендера)
  * renderFile - функця для рендера в один этап */
-export const DEFAULT_ACTIONS = { compileFile, compiledFunction, renderFile };
+export const DEFAULT_ACTIONS = { compileFile, compiledFunction, renderFile, render };
 
 /** Значение по умолчанию для свойства, содержащего шаблоны*/
 export const DEFAULT_TEMPLATES_VALUE = {};

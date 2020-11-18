@@ -1,6 +1,6 @@
 {
   "name": "raccoon-ark",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Plugins libraries based on raccoon-sanctuary",
   "main": "index.mjs",
   "scripts": {
@@ -24,6 +24,6 @@
   "dependencies": {
     "amqplib": "^0.6.0",
     "pug": "^3.0.0",
-    "raccoon-sanctuary": "^0.0.3"
+    "raccoon-sanctuary": "^0.0.33"
   }
 }
