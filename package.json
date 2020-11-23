@@ -23,6 +23,7 @@
   "homepage": "https://github.com/seon-cloud/raccoon-ark#readme",
   "dependencies": {
     "amqplib": "^0.6.0",
+    "mongoose": "^5.10.15",
     "pug": "^3.0.0",
     "raccoon-sanctuary": "^0.0.33"
   }
