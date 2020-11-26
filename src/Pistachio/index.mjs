@@ -81,6 +81,12 @@ export default class Pistachio extends Plugin {
     /** Объект логера, который используется в приложении */
     #logger
 
+    #dbName
+
+    get dbName() {
+        return this.#dbName;
+    }
+
     /**
      * @name
      * @description
@@ -567,6 +573,10 @@ export default class Pistachio extends Plugin {
         
         /** Создаем новый экземпляр класса плагина логера */
         this.#logger = new logger(loggerOptions);
+
+        this.#dbName = options?.dbName
+            ? options.dbName
+            : undefined;
     }
 
     /**
