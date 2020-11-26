@@ -169,7 +169,7 @@ export default class Pistachio extends Plugin {
      * @memberof Pistachio
      * @private
      */
-    #sendAnswer(answerActionName = 'seonApi', res, data=[], errors=[], meta={}) {
+    async #sendAnswer(answerActionName = 'seonApi', res, data=[], errors=[], meta={}) {
         const action = this.#getActionByName(answerActionName);
         const result = action(await data, await errors, await meta);
         res.end(result);
