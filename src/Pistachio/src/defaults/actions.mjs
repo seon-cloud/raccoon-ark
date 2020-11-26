@@ -19,6 +19,11 @@ export const seonApi = function (data=[], errors=[], meta={}) {
     }
 };
 
+export const db = function() {
+    const pluginName = this.dbName;
+    return (pluginName && this.call.hasOwnProperty(pluginName)) ? this.call[pluginName] : undefined;
+};
+
 /**
  * @function
  * @name allHealth
