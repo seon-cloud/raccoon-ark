@@ -87,6 +87,13 @@ export default class Pistachio extends Plugin {
         return this.#dbName;
     }
 
+    get db() {
+        const dbName = this.dbName;
+        return (dbName && this.call.hasOwnProperty(dbName)) 
+            ? this.call[dbName] 
+            : undefined;
+    }
+
     /**
      * @name
      * @description

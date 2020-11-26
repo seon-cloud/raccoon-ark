@@ -1,6 +1,5 @@
 /** Импортируем функции обработчики */
-import { 
-    db,
+import {
     seonApi, 
     allHealth, 
     allInfo, 
