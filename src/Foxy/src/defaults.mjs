@@ -1,4 +1,6 @@
-/** Импортируем пакет ODM для MongoDB (Mongoose) */
+/**
+ * Импортируем пакет ODM для MongoDB (Mongoose)
+ * */
 import mongoose from 'mongoose';
 
 /** 
@@ -745,26 +747,27 @@ const paginate = async function(
 };
 
 /**
- * distinct
- * restore
- * getRemoved
- * findRemoved
- * paginateRemoved
- * create
- * remove
- * updateOne
- * count
- * findOne
- * find
- * findById
- * findByIds
- * getModels
- * getModel
- * paginate
- * purgeById
- * purgeByIds
- * update
- * exist
+ * Экспортируемые функции-обработчики, доступные в Foxy по-умолчанию:
+ * - restore: снятие флага isRemoved
+ * - findOneRemoved: получение одного удалённого документа по фильтру
+ * - findRemoved: получение списка удалённых документов по фильтру
+ * - paginateRemoved: получение постраничного списка помеченных к удалению документов по фильтрам
+ * - create: создание нового документа
+ * - remove: пометить документ к удалению по идентификатору
+ * - updateOne: обновить один документ (по идентификатору)
+ * - updateMany: обновить все документы, попадающие под фильтр
+ * - count: получить количество документов с заданным фильтром
+ * - findOne: получить один документ по фильтру
+ * - find: получить список документов по заданному фильтру
+ * - findById: получить документ по идентификатору
+ * - findByIds: получить список документов по списку идетификаторов
+ * - getModels: получить объект моделей
+ * - getModel: получить модель по имени
+ * - paginate: получить постраничный список документов по фильтру
+ * - purgeId: удалить из БД документ, найденный по идетификатору
+ * - purgeIds: удалить из БД документы, найденные по списку идетификаторов
+ * - exist: проверить на существование документы, подпадающие под заданный фильтр
+ * - countRemoved: получить список удалённых документов по заданному фильтру
  */
 export const DEFAULT_ACTIONS = {
     restore,
@@ -790,7 +793,8 @@ export const DEFAULT_ACTIONS = {
 };
 
 /**
- * mongoose
+ * Пакеты, доступные в плагине Foxy по умолчанию
+ * - mongoose: ODM для работы с MongoDB
  */
 export const DEFAULT_PACKAGES = {
     mongoose
