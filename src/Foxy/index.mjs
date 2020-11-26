@@ -70,12 +70,28 @@ export default class Foxy extends Plugin {
      * @private
      */
     #registerModels() {
+        let model;
+        let name;
         this.#schemas.forEach(element => {
             if (element?.name && element?.schema) {
-                this.#models.add({ 
-                    name: element?.name,
-                    model: this.#connection.model(element.name, element.schema)
+                model = this.#connection.model(element.name, element.schema);
+                /** Добавляем поля по умолчанию во все схемы:
+                 * - isRemoved: помечен к удалению
+                 * - created: дата и время создания
+                 * - removed: дата и время удаления */
+                model.schema.add({
+                    isRemoved: {
+                        type: Boolean,
+                        default: false
+                    },
+                    created: {
+                        type: Date,
+                        default: Date.now
+                    },
+                    removed: Date
                 });
+                name = element.name;
+                this.#models.add({ name, model });
             }
         });
     }
