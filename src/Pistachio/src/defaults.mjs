@@ -59,7 +59,6 @@ import {
 
 /** Составляем объейт для с функциями обработчиками по умолчанию */
 export const DEFAULT_ACTIONS = { 
-    db,
     seonApi, 
     allHealth, 
     allInfo, 
