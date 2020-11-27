@@ -24,7 +24,6 @@
   "dependencies": {
     "amqplib": "^0.6.0",
     "mongoose": "^5.10.15",
-    "pino": "^6.7.0",
     "pug": "^3.0.0",
     "raccoon-sanctuary": "^0.0.33"
   }
