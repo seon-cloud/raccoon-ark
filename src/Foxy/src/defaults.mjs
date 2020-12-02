@@ -113,14 +113,14 @@ const _paginated = async function(self, modelName, filter, page, select, sort, l
             _count(self, modelName, filter)
         ]);
 
-        const pageCount = Math.ceil(result[INDEX_COUNT]/perPage);
+        const pageCount = Math.ceil(result[INDEX_COUNT].data/perPage);
 
         const nextPage = (pageCount > page)
             ? page + DEFAULT_PAGE_STEP
             : page;
         
         const data = result[INDEX_LIST].data;
-        const count = result[INDEX_LIST].data;
+        const count = result[INDEX_COUNT].data;
 
         const meta = { page, nextPage, pageCount, count, limit, filter }; 
         
@@ -392,7 +392,8 @@ const findByIds = async function(
 ) {
     try {
         const model = _getModel(this.models, modelName);
-
+        const self = this;
+        
         const filter = _filterNotRemoved({
             '_id': {
                 $in: uuids.map(uuid => mongoose.Types.ObjectId(uuid))
@@ -453,10 +454,10 @@ const findOne = async function(
  * @returns {object}           новый документ
  * @public 
  */
-const create = async function(modelName, data={}) {
+const create = async function(modelName, toSave={}) {
     try {
         const model = _getModel(this.models, modelName);
-        const data = new model(data).save();
+        const data = await new model(toSave).save();
         const meta = {};
         return { data, meta };
     } catch (error) {
