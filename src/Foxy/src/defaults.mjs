@@ -77,7 +77,7 @@ const _find = async function(
             ? await query.lean() 
             : await query;
         
-        const meta = { limit, skip, count };
+        const meta = { limit, skip, count: count.data };
         
         return { data, meta  };
     } catch (error) {
@@ -120,7 +120,7 @@ const _paginated = async function(self, modelName, filter, page, select, sort, l
             : page;
         
         const data = result[INDEX_LIST].data;
-        const count = result[INDEX_LIST].meta.count;
+        const count = result[INDEX_LIST].data;
 
         const meta = { page, nextPage, pageCount, count, limit, filter }; 
         

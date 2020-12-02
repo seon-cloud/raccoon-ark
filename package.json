@@ -1,6 +1,6 @@
 {
   "name": "raccoon-ark",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "description": "Plugins libraries based on raccoon-sanctuary",
   "main": "index.mjs",
   "scripts": {
