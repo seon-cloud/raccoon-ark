@@ -14,21 +14,41 @@ import { DEFAULT_ACTIONS } from './defaults.mjs';
  * getExtendedPackages - получить раширенный набор пакетов плагинов */
 import { Utils } from 'raccoon-sanctuary';
 
-const { getExtandedActions, getExtendedPackages } = Utils;
+/** Получаем впомогатеьные функции
+ * - getExtandedActions: функция получения расширенного объекта действий 
+ * - getExtendedPackages: функция получения расширенного обеъкта пакетов
+ */
+const { 
+    getExtandedActions, 
+    getExtendedPackages 
+} = Utils;
 
 /**
- * @function
- * @name prepareSuperOptions
- * @description Функця, которая собирает объект опций для инициализации 
- *              родительского класса плагина Archibald
- * @param {object} options объект опций экземпляра
- * @returns {object} объект опций для инициализации родителя
- * @public 
+ * Возвращаемый функцией prepareSuperOptions объект
+ * 
+ * @typedef {Object} ArchibaldOptions
+ * @property {string} name      имя плагина
+ * @property {object} packages  объект пакетов плагина
+ * @property {object} actions   объект действий плагина
  */
-export const prepareSuperOptions = (options) => {
+
+/**
+ * Функця, которая собирает объект опций для инициализации родительского
+ * класса плагина Archibald
+ * 
+ * @param {object} options объект опций экземпляра
+ * @returns {ArchibaldOptions} объект опций для инициализации родителя
+ * @exports
+ */
+export const prepareSuperOptions = options => {
+    /** Получаем имя для плагина */
     const name = options?.name ? options.name : NAME;
+    /** Получаем объект пакетов по умолчанию */
     const defaultPackages = { pug };
+    /** Получаем расширенный объект пакетов */
     const packages = getExtendedPackages(options, defaultPackages);
+    /** Получаем расширенный объект действий */
     const actions = getExtandedActions(options, DEFAULT_ACTIONS);
+    /** */
     return { name, packages, actions };
 };

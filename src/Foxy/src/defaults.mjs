@@ -27,9 +27,41 @@ import {
     IS_NOT_REMOVED,
     DEFAULT_PAGE,
     DEFAULT_PAGE_STEP,
-    INDEX_LIST,
+    INDEX_DATA,
     INDEX_COUNT
 } from './constants.mjs';
+
+/**
+ * Функция получения результатов вычисления количества документов
+ * из результирующего массива (результат выполнения обещания из
+ * массива Promise.all)
+ * 
+ * @function _getCountFromResult
+ * @param {Array<any>} result массив результатов (результат выполнения Promise.all)
+ * @returns {number} результат выполнения запроса подсчёта  
+ * @private
+ */
+const _getCountFromResult = result => {
+    return result[INDEX_COUNT]?.data
+        ? result[INDEX_COUNT].data
+        : result[INDEX_COUNT];
+};
+
+/**
+ * Функция получения результатов запроса поиска документа(ов)
+ * из результирующего массива (результат выполнения обещания из
+ * массива Promise.all)
+ * 
+ * @function _getDataFromResult
+ * @param   {Array<any>}             массив результатов (результат вычисления Promise.all)
+ * @returns {object|Array<any>|null} result массив документов или документ, или пустое значение
+ * @private
+ */
+const _getDataFromResult = result => {
+    return result[INDEX_DATA]?.data
+        ? result[INDEX_DATA].data
+        : result[INDEX_DATA];
+};
 
 /**
  * @function
@@ -62,27 +94,38 @@ const _find = async function(
     sort=DEFAULT_SORT, 
     lean=DEFAULT_LEAN
 ) {
+    let errors = null;
+    let data = null;
+    let meta = null;
+    
     try {
+        /** Получаем модель из объекта моделей */
         const model = _getModel(self.models, modelName);
-
+        /** Составляем запрос */
         const query = model.find(filter)
-                           .limit(limit)
-                           .skip(skip)
-                           .sort(sort)
-                           .select(select);
-        
-        const count = await _count(self, modelName, filter);
-
-        const data = lean 
-            ? await query.lean() 
-            : await query;
-        
-        const meta = { limit, skip, count: count.data };
-        
-        return { data, meta  };
+                            .limit(limit)
+                            .skip(skip)
+                            .sort(sort)
+                            .select(select);
+        /** Получаем асинхронно 2 запроса.
+         * Соотвествующий INDEX_DATA - запрос списка документов
+         * Соответствующий INDEX_COUNT - запрос количества документов
+         */
+        const result = await Promise.all([
+            lean ? await query.lean() : await query,
+            _count(self, modelName, filter),
+        ]);
+        /** Наполняем данными переменную data*/
+        data = _getDataFromResult(result);
+        /** Наполняем данными переменную count */
+        const count = _getCountFromResult(result);
+        /** Формируем объект мета-информации */
+        meta = { limit, skip, count };
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+
+    return { data, errors, meta };
 };
 
 /**
@@ -102,10 +145,22 @@ const _find = async function(
  * @private
  * @async 
  */
-const _paginated = async function(self, modelName, filter, page, select, sort, lean, perPage) {
+const _paginated = async function(
+    self,
+    modelName, 
+    filter,
+    page,
+    select,
+    sort,
+    lean,
+    perPage
+) {
+    let errors = null;
+    let data = null;
+    let meta = null;
+
     try {
         const limit = perPage;
-        
         const skip = (page - DEFAULT_PAGE_STEP) * perPage;
         
         const result = await Promise.all([
@@ -119,15 +174,14 @@ const _paginated = async function(self, modelName, filter, page, select, sort, l
             ? page + DEFAULT_PAGE_STEP
             : page;
         
-        const data = result[INDEX_LIST].data;
+        data = result[INDEX_DATA].data;
         const count = result[INDEX_COUNT].data;
 
-        const meta = { page, nextPage, pageCount, count, limit, filter }; 
-        
-        return { data, meta };
+        meta = { page, nextPage, pageCount, count, limit, filter }; 
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return {data, meta, errors };
 };
 
 /**
@@ -151,20 +205,20 @@ const _findOne = async function(
     select=DEFAULT_SELECT, 
     lean=DEFAULT_LEAN
 ) {
+    let errors = null;
+    let data = null;
+    let meta = null;
     try {
         const model = _getModel(self.models, modelName);
         const query = model.findOne(filter).select(select);
         
-        const data = lean 
-            ? await query.lean() 
-            : await query;
-
-        const meta = { filter };
-
-        return { data, meta }; 
+        data = lean ? await query.lean() : await query;
+        meta = { filter }; 
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+
+    return { data, meta, errors };
 };
 
 /**
@@ -179,14 +233,18 @@ const _findOne = async function(
  * @async 
  */
 const _count = async function(self, modelName, filter) {
+    let data = null;
+    let meta = null;
+    let errors = null;
+
     try {
         const model = _getModel(self.models, modelName);
-        const data = await model.countDocuments(filter);
-        const meta = { filter };
-        return { data, meta };
+        data = await model.countDocuments(filter);
+        meta = { filter };
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, meta, errors };
 };
 
 
@@ -240,20 +298,21 @@ const _filterNotRemoved = filter => {
  * @async 
  */
 const _updateOne = async function (self, modelName, filter, update, lean, updated) {
+    let data = null;
+    let errors = null;
+    let meta = null;
+
     try {
         const model = _getModel(self.models, modelName);
-        const query = model.findOneAndUpadate(filter, update, { new: updated });
+        const query = model.findOneAndUpadate(filter, update, { new: updated });    
         
-        const data = lean 
-            ? await query.lean() 
-            : await query;
-
-        const meta = { filter };
-
-        return { data, meta }
+        data = lean  ? await query.lean() : await query;
+        meta = { filter };
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+
+    return { data, meta, errors }
 };
 
 /**
@@ -338,12 +397,8 @@ const find = async function(
         sort=DEFAULT_SORT, 
         lean=DEFAULT_LEAN
 ) {
-    try {
-        const extFilter = _filterNotRemoved(filter);
-        return await _find(this, modelName, extFilter, select, limit, skip, sort, lean); 
-    } catch (error) {
-        throw error;
-    }
+    const extFilter = _filterNotRemoved(filter);
+    return await _find(this, modelName, extFilter, select, limit, skip, sort, lean); 
 };
 
 /**
@@ -359,12 +414,8 @@ const find = async function(
  * @async
  */
 const findById = async function(modelName, uuid, select=DEFAULT_SELECT, lean=DEFAULT_LEAN) {
-    try {
-        const filter = _filterNotRemoved({ _id: mongoose.Types.ObjectId(uuid) });
-        return await _findOne(this, modelName, filter, select, lean);
-    } catch (error) {
-        throw error;
-    }
+    const filter = _filterNotRemoved({ _id: mongoose.Types.ObjectId(uuid) });
+    return await _findOne(this, modelName, filter, select, lean);
 };
 
 /**
@@ -390,6 +441,10 @@ const findByIds = async function(
     select=DEFAULT_SELECT, 
     lean=DEFAULT_LEAN
 ) {
+    let data = null;
+    let errors = null;
+    let meta = null;
+
     try {
         const model = _getModel(this.models, modelName);
         const self = this;
@@ -406,15 +461,14 @@ const findByIds = async function(
             lean ? await query.lean() : await query,
             _count(self, modelName, filter)            
         ]);
-        const data = result[0];
-        const count = result[1];
-
-        const meta = { limit, skip, filter, count }; 
-
-        return { data, meta };
+        
+        const count = _getCountFromResult(result);
+        data = _getDataFromResult(result);
+        meta = { limit, skip, filter, count }; 
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, errors, meta };
 };
 
 /**
@@ -436,12 +490,8 @@ const findOne = async function(
     select=DEFAULT_SELECT, 
     lean=DEFAULT_LEAN
 ) {
-    try {
-        const extFilter = _filterNotRemoved(filter);
-        return await _findOne(this, modelName, extFilter, select, lean);
-    } catch (error) {
-        throw error;
-    }
+    const extFilter = _filterNotRemoved(filter);
+    return await _findOne(this, modelName, extFilter, select, lean);
 };
 
 
@@ -455,14 +505,17 @@ const findOne = async function(
  * @public 
  */
 const create = async function(modelName, toSave={}) {
+    let data = null;
+    let errors = null;
+    let meta = null;
     try {
         const model = _getModel(this.models, modelName);
-        const data = await new model(toSave).save();
-        const meta = {};
-        return { data, meta };
+        data = await new model(toSave).save();
+        meta = {};
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, meta, errors };
 };
 
 /**
@@ -478,15 +531,18 @@ const create = async function(modelName, toSave={}) {
  * @async 
  */
 const updateMany = async function(modelName, filter={}, update={}, fullUpdate=false) {
+    let data = null;
+    let errors = null;
+    let meta = null;
     try {
         const model = _getModel(this.models, modelName);
         const updateAction = fullUpdate ? { ...update } : { $set: { ...update} };
-        const data = await model.updateMany(filter, updateAction);
-        const meta = {};
-        return { data, meta };
+        data = await model.updateMany(filter, updateAction);
+        meta = {};
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, errors, meta };
 };
 
 /**
@@ -503,12 +559,8 @@ const updateMany = async function(modelName, filter={}, update={}, fullUpdate=fa
  * @async
  */
 const updateOne = async function(modelName, filter=DEFAULT_FILTER, update={}, lean=false, updated=true) {
-    try {
-        const extFilter = _filterNotRemoved(filter);
-        return await _updateOne(this, modelName, extFilter, update, lean, updated);
-    } catch (erro) {
-        throw error;
-    }
+    const extFilter = _filterNotRemoved(filter);
+    return await _updateOne(this, modelName, extFilter, update, lean, updated);
 };
 
 /**
@@ -522,13 +574,9 @@ const updateOne = async function(modelName, filter=DEFAULT_FILTER, update={}, le
  * @async
  */
 const remove = async function(modelName, uuid) {
-    try {
-        const filter = _filterNotRemoved({ _id: mongoose.Types.ObjectId(uuid) });
-        const update = { isRemoved: true };
-        return await _updateOne(this, modelName, filter, update, false, true);
-    } catch (error) {
-        throw error;
-    }
+    const filter = _filterNotRemoved({ _id: mongoose.Types.ObjectId(uuid) });
+    const update = { isRemoved: true };
+    return await _updateOne(this, modelName, filter, update, false, true);
 };
 
 /**
@@ -542,14 +590,17 @@ const remove = async function(modelName, uuid) {
  * @public 
  */
 const count = async function(modelName, filter=DEFAULT_FILTER) {
+    let data = null;
+    let errors = null;
+    let meta = null;
     try {
         const extFilter = _filterNotRemoved(filter);
-        const data = await _count(this, modelName, extFilter);
-        const meta = { filter };
-        return { data, meta };
+        data = await _count(this, modelName, extFilter);
+        meta = { filter };
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, errors, meta };
 };
 
 /**
@@ -564,14 +615,17 @@ const count = async function(modelName, filter=DEFAULT_FILTER) {
  * @async 
  */
 const countRemoved = async function(modelName, filter=DEFAULT_FILTER) {
+    let data = null;
+    let errors = null;
+    let meta = null;
     try {
         const extFilter = _filterRemoved(filter);
-        const data = await _count(modelName, extFilter);
-        const meta = { filter };
-        return { data, meta }; 
+        data = await _count(modelName, extFilter);
+        meta = { filter }; 
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, errors, meta };
 }
 
 /**
@@ -586,15 +640,18 @@ const countRemoved = async function(modelName, filter=DEFAULT_FILTER) {
  * @async
  */
 const purgeId = async function(modelName, uuid) {
+    let data = null;
+    let errors = null;
+    let meta = null;
     try {
         const model = _getModel(this.models, modelName);
         const filter = { _id: mongoose.Types.ObjectId(uuid) };
-        const data = await model.deleteOne(filter);
-        const meta = {};
-        return { data, meta };
+        data = await model.deleteOne(filter);
+        meta = {};
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, errors, meta };
 };
 
 /**
@@ -609,6 +666,9 @@ const purgeId = async function(modelName, uuid) {
  * @async 
  */
 const purgeIds = async function(modelName, uuids=[]) {
+    let data = null;
+    let errors = null;
+    let meta = null;
     try {
         const model = _getModel(this.models, modelName);
         const filter = { 
@@ -616,12 +676,12 @@ const purgeIds = async function(modelName, uuids=[]) {
                 $in: uuids.map(uuid => mongoose.Types.ObjectId(uuid))
             }
         };
-        const data = await model.deleteMany(filter);
-        const meta = { filter };
-        return { data, meta };
+        data = await model.deleteMany(filter);
+        meta = { filter };
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, errors, meta };
 };
 
 
@@ -636,17 +696,17 @@ const purgeIds = async function(modelName, uuids=[]) {
  * @async
  */
 const exist = async function(modelName, filter=DEFAULT_FILTER) {
+    let data = null;
+    let errors = null;
+    let meta = null;
     try {
         const result = await count(modelName, filter);
-        const data = (result > 0) ? true : false;
-        const meta = {
-            count,
-            filter
-        };
-        return { data, meta };
+        data = (result > 0) ? true : false;
+        meta = { count, filter };
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, errors, meta };
 };
 
 /**
@@ -667,16 +727,19 @@ const findOneRemoved = async function(
     select=DEFAULT_SELECT,
     lean=DEFAULT_LEAN
 ) {
+    let data = null;
+    let errors = null;
+    let meta = null;
     try {
         const model = _getModel(this.models, modelName);
         const extFilter = _filterRemoved(filter);
         const query = model.findOne(extFilter).select(select);
-        const data = lean ? await query.lean() : await query;
-        const meta = { filter };
-        return { data, meta }; 
+        data = lean ? await query.lean() : await query;
+        meta = { filter }; 
     } catch (error) {
-        throw error;
+        errors = [error];
     }
+    return { data, errors, meta };
 };
 
 /**
@@ -704,12 +767,8 @@ const findRemoved = async function(
     sort=DEFAULT_SORT,
     lean=DEFAULT_LEAD
 ) {
-    try {
-        const extFilter = _filterRemoved(filter);
-        return await _find(this, modelName, extFilter, select, limit, skip, sort, lean);
-    } catch (error) {
-        throw error;
-    }
+    const extFilter = _filterRemoved(filter);
+    return await _find(this, modelName, extFilter, select, limit, skip, sort, lean);
 };
 
 /**
@@ -737,12 +796,8 @@ const paginateRemoved = async function(
     lean=DEFAULT_LEAN, 
     perPage=DEFAULT_LIMIT
 ) {
-    try {
-        const extFilter = _filterRemoved(filter);
-        return await _paginated(this, modelName, extFilter, page, select, sort, lean, perPage);
-    } catch (error) {
-        throw error;
-    }
+    const extFilter = _filterRemoved(filter);
+    return await _paginated(this, modelName, extFilter, page, select, sort, lean, perPage);
 };
 
 /**
@@ -757,13 +812,9 @@ const paginateRemoved = async function(
  * @async
  */
 const restore = async function(modelName, uuid) {
-    try {
-        const filter = _filterRemoved({ _id: mongoose.Types.ObjectId(uuid) });
-        const update = { isRemoved: false };
-        return await _updateOne(this, modelName, filter, update, false, true);
-    } catch (error) {
-        throw error;
-    }
+    const filter = _filterRemoved({ _id: mongoose.Types.ObjectId(uuid) });
+    const update = { isRemoved: false };
+    return await _updateOne(this, modelName, filter, update, false, true);
 };
 
 /**
@@ -790,12 +841,8 @@ const paginate = async function(
     lean=DEFAULT_LEAN, 
     perPage=DEFAULT_LIMIT
 ) {
-    try {
-        const extFilter = _filterNotRemoved(filter);
-        return await _paginated(this, modelName, extFilter, page, select, sort, lean, perPage);
-    } catch (error) {
-        throw error;
-    }
+    const extFilter = _filterNotRemoved(filter);
+    return await _paginated(this, modelName, extFilter, page, select, sort, lean, perPage);
 };
 
 /**
