@@ -21,6 +21,6 @@ export const DEFAULT_PAGE = 1;
 /** Номер шага страницы по-умолчанию  */
 export const DEFAULT_PAGE_STEP = 1;
 /** Индекс списка в списке запросов */
-export const INDEX_LIST = 0;
+export const INDEX_DATA = 0;
 /** Индекс количества в списке запросов */
 export const INDEX_COUNT = 1;

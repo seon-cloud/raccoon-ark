@@ -10,55 +10,71 @@ import  { prepareSuperOptions } from './src/utils.mjs';
  * DEFAULT_TEMPLATES_VALUE - значение по умолчанию для свойства шаблонов */
 import { DEFAULT_TEMPLATES_VALUE } from './src/defaults.mjs';
 
+
 /**
- * @class
- * @name Archibald
- * @description Плагин-обёртка для пакета Pug
- * @author Dmitrii Shevelev<igrave1988@gmail.com>
- * @extends Plugin
+ * Класс для работы с шаблонизатором Pug
+ *
+ * @export
+ * @class Archibald
+ * @extends {Plugin}
+ * @author small-entropy
  */
 export default class Archibald extends Plugin {
 
-    /** Объект с ключами шаблонов*/
+    /** 
+     * Свойство, содержащее объект с шаблонами 
+     * 
+     * @type {object}
+     * @memberof Archibald
+     */
     #templates
     
-    /** Откомпилированные через Pug шаблоны */
+    /**
+     * Свойство, содержащее объект откомпилированных шаблонов
+     * 
+     * @type {object}
+     * @memberof Archibald
+     */
     #compiled
 
     /**
-     * @name templates
-     * @description Гетер объекта с шаблонами
+     * Гетер объекта с шаблонами
+     * 
+     * @readonly
+     * @returns {object}
      * @memberof Archibald
-     * @public
      */
     get templates() {
         return this.#templates;
     }
 
     /**
-     * @name compiled
-     * @description Гетер откомпилированных функций шаблонов
+     * Гетер объекта откомпилированных шаблонов
+     * 
+     * @readonly
+     * @returns {object}
      * @memberof Archibald
-     * @public
-     */
+     */    
     get compiled() {
         return this.#compiled;
     }
-
+    
     /**
-     * @method
-     * @name prepareInstanceProperty
-     * @description Метод подготовки свойство экземпляра класса
-     * @param {object} options опции для создания
+     * Приватный метод подготовки 
+     * 
+     * @param {object} options опции, переданные в качесвте параметров конструктора
      * @returns {void}
      * @memberof Archibald
-     * @private
+     * @private 
      */
     #prepareInstanceProperty(options) {
-        this.#templates = options?.templates
+        /**  Наполняем объект шаблонов.
+         * Если в опциях у нас присутствие свойство templates - заполняем им свойство объекта.
+         * Если в опция у нас отсутствует свойство templates берём значение по умолчанию*/
+        this.#templates = (options?.templates)
             ? options.templates
             : DEFAULT_TEMPLATES_VALUE;
-
+        
         this.#compiled = {};
 
         let filepath;
@@ -71,11 +87,9 @@ export default class Archibald extends Plugin {
     }
 
     /**
-     * @constructor
-     * @description Конструктор экземпляра класс
-     * @param {object} options опции для сборки экземпляра класса
-     * @memberof Archibald
-     * @public
+     * Конструктор класса Archibald
+     * 
+     * @param {object} options объект опция для сброки экземпляра плагина
      */
     constructor(options) {
         const superOptions = prepareSuperOptions(options);
@@ -83,3 +97,5 @@ export default class Archibald extends Plugin {
         this.#prepareInstanceProperty(options);
     }
 }
+
+const Archi = new Archibald

@@ -87,6 +87,13 @@ export default class Pistachio extends Plugin {
         return this.#dbName;
     }
 
+    get db() {
+        const dbName = this.dbName;
+        return (dbName && this.call.hasOwnProperty(dbName)) 
+            ? this.call[dbName] 
+            : undefined;
+    }
+
     /**
      * @name
      * @description
@@ -162,9 +169,9 @@ export default class Pistachio extends Plugin {
      * @memberof Pistachio
      * @private
      */
-    #sendAnswer(answerActionName = 'seonApi', res, data=[], errors=[], meta={}) {
+    async #sendAnswer(answerActionName = 'seonApi', res, data=[], errors=[], meta={}) {
         const action = this.#getActionByName(answerActionName);
-        const result = action(data, errors, meta);
+        const result = action(await data, await errors, await meta);
         res.end(result);
     }
 
