@@ -1,2 +1,15 @@
-# raccoon-ark
-Plugin library based on Raccoon Sanctuary
+Бибилиотека плагинов на основе Raccoon Sanctuary.
+## Плагины библиотеки Ark
+### Archibald
+Плагин-обёртка для пакета Pug, предоставляет функци шаблонизатора.
+### ConsoleLogger
+Плагин консольного логера (на основе стандартного console.log).
+### Foxy
+Плагин-обёртка для работы с MongoDB (на основе пакета Mongoose).
+### Pinocolada
+Плагин логера (на основе пакета Pino).
+### Pistachio
+Плагин-фреймворк для реализации HTTP сервера (на основе модуля HTTP).
+Совместим с middleware фреймворка ExpressJS
+### Rabbit
+Плагин-обёртка для работы с RabbitMQ.
