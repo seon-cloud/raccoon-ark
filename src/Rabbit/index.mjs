@@ -1,5 +1,20 @@
+/**
+ * Импортируем класс Plugin для расширения
+ */
 import { Plugin } from 'raccoon-sanctuary';
-import amqplib from 'amqplib';
+/**
+ * Импортируем функцию подготовки опций родителя
+ */
+import { prepareSuperOptions } from './src/utils.mjs';
+/**
+ * Импортируем константы
+ * - 
+ * - 
+ */
+import {
+    FIRST_INDEX, 
+    CONNECTION_STRING
+} from './src/constants.mjs';
 
 /**
  * @class
@@ -16,99 +31,63 @@ export default class Rabbit extends Plugin {
     /** Приватное свойство соединения */
     #connection
 
-    #channels = []
+    #channels
 
-    /** Свойство класса, статическое. Содержит колбеки для действий */
-    static pluginActions = {
-        connect: async function() {
-            try {
-                if (this.connectionString) {
-                    this.#connection = await amqplib.connect(this.connectionString);
-                    return this.#connection;
-                } else {
-                    return undefined;
-                }
-            } catch (error) {
-                throw error;
-            }
-        },
-        createChannel: async function () {
-            try {
-                if (this.connection) {
-                    const channel = await this.#connection.createChannel();
-                    if (channel) {
-                        this.#channels.push(channel);
-                    }
-                    return channel;
-                } else {
-                    return undefined;
-                }
-            } catch (error) {
-                throw error;
-            }
-        },
-        close: async function() {
-            try {
-                if (this.connection) {
-                    await this.#connection.close();
-                    this.#connection = undefined;
-                    return this.connection;
-                } else {
-                    return undefined;
-                }
-            } catch (error) {
-                throw error;
-            }
-        },
-        publisher: function(queue_name, data, channel_id) {
-            try {
-                const channel = this.#getChannelForWork(channel_id);
-                if (channel && queue_name) {
-                    return channel
-                    .assertQueue(queue_name)
-                        .then(ok => {
-                            return channel.sendToQueue(queue_name, Buffer.from(data));
-                        });
-                } else {
-                    return undefined;
-                }
-            } catch (error) {
-                throw error;
-            }
-        },
-        consumer: function(queue_name, callback, channel_id) {
-            try {
-                const channel = this.#getChannelForWork(channel_id);
-                if (channel && queue_name) {
-                    return channel
-                        .assertQueue(queue_name)
-                            .then(ok => {
-                                return channel
-                                    .consume(queue_name, msg => {
-                                        if (msg) {
-                                            
-                                            callback(this, msg);
-                                            channel.ack(msg);
-                                        }
-                                    });
-                            });
-                } else {
-                    return undefined;
-                }
-            } catch (error) {
-                throw error;
-            }
-        }
+    /**
+     * Гетер для соединеня с сервером RabbitMQ
+     * 
+     * 
+     * @name connection
+     * @memberof Rabbit
+     * @returns {object|undefined}
+     */
+    get connection() {
+        return this.#connection;
     }
 
-    #getChannelForWork(channel_id) {
+    /**
+     * Сеттер для соедиения с сервером RabbitMQ
+     * 
+     * 
+     * @name connection
+     * @param   {object|undefined}  value   объект соединения
+     * @returns {void}
+     * @memberof Rabbit
+     */
+    set connection(value) {
+        this.#connection = value;
+    }
+
+    /**
+     * Гетер для списка каналов
+     * 
+     * 
+     * @readonly
+     * @name channels
+     * @returns {Array<object>}
+     * @memberof Rabbit
+     */
+    get channels() {
+        return this.#channels;
+    }
+
+    /**
+     * Метод возвращает канал по идентификатору
+     * 
+     * 
+     * @method getChannel
+     * @param   {number} channel_id идентификатор канала
+     * @returns {object|undefined}  объект канала
+     * @memberof Rabbit
+     * @public
+     */
+    getChannel(channel_id) {
         let channel;
-        const first_channel_index = 0;
         if (channel_id) {
             const filtered_channels = this.channels.filter(channel => channel.ch === channel_id);
-            channel = filtered_channels[0];
+            channel = filtered_channels[FIRST_INDEX];
         } else if (!channel_id && this.channels.length) {
-            channel = this.channels[first_channel_index];
+            channel = this.channels[FIRST_INDEX];
         } else {
             channel = undefined;
         }
@@ -116,9 +95,41 @@ export default class Rabbit extends Plugin {
     }
 
     /**
-     * @method
+     * Метод удаляет ссылку не используемого соединения
+     * 
+     * 
+     * @method clearConnection
+     * @memberof Rabbit
+     * @returns {void}
+     * @public
+     */
+    clearConnection() {
+        if (this.connection) {
+            this.#connection = undefined;
+        }
+    }
+
+    /**
+     * Метод добавления канала к списку каналов
+     * 
+     * 
+     * @method pushChannel
+     * @param   {object} value
+     * @returns {void}
+     * @memberof Rabbit
+     * @public 
+     */
+    pushChannel(value) {
+        if (value) {
+            this.#channels.push(value);
+        }
+    }
+
+    /**
+     * Гетер, который позволяет получить соединение с RabbitMQ
+     * 
+     * 
      * @name connection
-     * @description Гетер, который позволяет получить соединение с RabbitMQ
      * @returns {Object} объект соединения
      * @memberof Rabbit
      */
@@ -127,9 +138,10 @@ export default class Rabbit extends Plugin {
     }
 
     /**
-     * @method
+     * Гетер, который возвращает строку для соединения
+     * 
+     * 
      * @name connectionString
-     * @description Гетер, который возвращает строку для соединения
      * @returns {String} строка соединеня
      * @memberof Rabbit
      */
@@ -137,30 +149,33 @@ export default class Rabbit extends Plugin {
         return this.#connectionString;
     }
 
-    get channels() {
-        return this.#channels;
+    /**
+     * Метод для подготовки свойств экземпляра класса
+     * 
+     * 
+     * @param   {object} options объект опций плагина
+     * @returns {void}
+     * @memberof Rabbit
+     * @private 
+     */
+    #prepareInstanceOptions(options) {
+        this.#connectionString = options?.connectionString
+            ? options.connectionString
+            : CONNECTION_STRING;
+        this.#channels = [];
     }
 
     /**
+     * Конструктор объекта плагина
+     * 
+     * 
      * @constructor
-     * @description
-     * @param {Object} options
+     * @param {Object} options объект опций плагина
      * @memberof Rabbit 
      */
     constructor(options) {
-        const name = 'rabbit';
-        const actions = options?.actions 
-            ? { ...options.actions, ...Rabbit.pluginActions }
-            : Rabbit.pluginActions ;
-
-        const packages = { amqplib };
-
-        const ext_options = { ...options, name, packages, actions };
-        
-        super(ext_options);
-
-        this.#connectionString = options?.connectionString
-            ?  options.connectionString
-            : 'amqp://guest:guest@localhost:5672/';
+        const superOptions = prepareSuperOptions(options);
+        super(superOptions);
+        this.#prepareInstanceOptions(options);
     }
 }
