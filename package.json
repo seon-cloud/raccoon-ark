@@ -1,10 +1,10 @@
 {
   "name": "raccoon-ark",
-  "version": "0.0.34",
+  "version": "0.0.35",
   "description": "Plugins libraries based on raccoon-sanctuary",
   "main": "index.mjs",
   "scripts": {
-    "test": "c8 --reporter=text ava ./tests/*.test.mjs --verbose",
+    "test": "c8 --reporter=text ava  ./tests/*.test.mjs --verbose --timeout=2m",
     "coverage": "c8 --reporter=html --reporter=text ava ./tests/*.test.mjs --verbose"
   },
   "repository": {
@@ -27,11 +27,10 @@
     "mongoose": "^5.10.15",
     "pino": "^6.7.0",
     "pug": "^3.0.0",
-    "raccoon-sanctuary": "^0.0.34"
+    "raccoon-sanctuary": "^0.0.35"
   },
   "devDependencies": {
     "ava": "^3.13.0",
-    "ava-spec": "^1.1.1",
     "c8": "^7.3.5",
     "eslint": "^7.13.0"
   }
