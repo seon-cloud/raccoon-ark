@@ -27,7 +27,7 @@
     "mongoose": "^5.10.15",
     "pino": "^6.7.0",
     "pug": "^3.0.0",
-    "raccoon-sanctuary": "^0.0.34"
+    "raccoon-sanctuary": "^0.0.35"
   },
   "devDependencies": {
     "ava": "^3.13.0",
